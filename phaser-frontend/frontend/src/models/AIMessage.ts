@@ -3,6 +3,15 @@ import type { Alert } from './Alert';
 export type AIMessageSeverity = 'INFO' | 'WARNING' | 'CRITICAL';
 export type AIMessageKind = 'PREDICTION' | 'RECOMMENDATION' | 'DECISION';
 
+export interface AIRecommendedCommand {
+  command: 'SET_COOLING' | 'REDUCE_LOAD' | 'STOP';
+  /** Direct backend value, such as a 90% cooling setpoint. */
+  value?: number;
+  /** Desired final value when the backend command expects a delta. */
+  targetValue?: number;
+  label: string;
+}
+
 /**
  * Presentation contract for messages produced by the predictive-maintenance / AI backend.
  * The Phaser frontend renders these values only; it does not calculate predictions or decisions.
@@ -16,6 +25,8 @@ export interface AIMessage {
   title: string;
   message: string;
   recommendedAction?: string;
+  recommendedCommand?: AIRecommendedCommand;
+  sourcePredictionId?: string;
   confidence?: number;
   timestamp: string;
   /** Simulator minute at the input window, and the prediction horizon. */

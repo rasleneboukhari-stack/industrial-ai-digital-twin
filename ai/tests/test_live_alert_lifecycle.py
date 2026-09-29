@@ -70,6 +70,21 @@ class LiveAlertLifecycleTests(unittest.TestCase):
         self.assertEqual(payload["simulatedMinute"], 300)
         self.assertEqual(payload["horizonMinutes"], 24 * 60)
         self.assertTrue(payload["prominent"])
+        self.assertEqual(payload["recommendedCommand"]["command"], "REDUCE_LOAD")
+        self.assertEqual(payload["recommendedCommand"]["targetValue"], 55)
+
+    def test_temperature_and_failure_have_specific_safe_actions(self):
+        self.service.thresholds.update(temperature=0.1)
+        self.service.limits.update(temperature=100.0)
+        self.service.update_alert(1, 300, self.values, "temperature", 0.2)
+        temperature = json.loads(self.service.client.messages[-1][1])
+        self.assertEqual(temperature["recommendedCommand"], {
+            "command": "SET_COOLING", "value": 90, "label": "COOLING 90"
+        })
+
+        self.service.update_alert(2, 300, self.values, "failure", 0.2)
+        failure = json.loads(self.service.client.messages[-1][1])
+        self.assertEqual(failure["recommendedCommand"]["command"], "STOP")
 
     def test_all_sensor_forecasts_are_prominent(self):
         self.service.thresholds.update(temperature=0.1, vibration=0.1)

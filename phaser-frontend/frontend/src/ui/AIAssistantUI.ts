@@ -16,6 +16,7 @@ export class AIAssistantUI extends Phaser.GameObjects.Container {
   private readonly titleText: Phaser.GameObjects.Text;
   private readonly messageText: Phaser.GameObjects.Text;
   private readonly actionText: Phaser.GameObjects.Text;
+  private readonly actionBanner: Phaser.GameObjects.Rectangle;
   private readonly leftEye: Phaser.GameObjects.Rectangle;
   private readonly rightEye: Phaser.GameObjects.Rectangle;
   private readonly statusLed: Phaser.GameObjects.Rectangle;
@@ -118,11 +119,15 @@ export class AIAssistantUI extends Phaser.GameObjects.Container {
       wordWrap: { width: 406, useAdvancedWrap: true },
       maxLines: 5,
     });
-    this.actionText = scene.add.text(12, 156, '', {
+    this.actionBanner = scene.add.rectangle(8, 148, 320, 38, 0x263b46, 1)
+      .setOrigin(0)
+      .setStrokeStyle(2, ACCENTS.INFO);
+    this.actionText = scene.add.text(16, 153, '', {
       fontFamily: 'monospace',
-      fontSize: '9px',
-      color: '#90b8c2',
-      wordWrap: { width: 290, useAdvancedWrap: true },
+      fontSize: '10px',
+      color: '#e7f3f5',
+      fontStyle: 'bold',
+      wordWrap: { width: 304, useAdvancedWrap: true },
       maxLines: 2,
     });
     this.openButton = new PixelButton(scene, 342, 166, 84, 24, 'OPEN AI', () => this.onOpenAI(this.current ?? this.latest));
@@ -135,6 +140,7 @@ export class AIAssistantUI extends Phaser.GameObjects.Container {
       this.metaText,
       this.titleText,
       this.messageText,
+      this.actionBanner,
       this.actionText,
       this.openButton,
       this.closeButton,
@@ -234,6 +240,7 @@ export class AIAssistantUI extends Phaser.GameObjects.Container {
     const accent = ACCENTS[message.severity];
     const accentCss = `#${accent.toString(16).padStart(6, '0')}`;
     this.panelBorder.setStrokeStyle(3, accent);
+    this.actionBanner.setStrokeStyle(2, accent).setFillStyle(accent, 0.18);
     this.kindText.setText(`AI · ${message.kind}`).setColor(accentCss);
 
     const machine = message.machineId === undefined ? 'FACTORY' : `M${String(message.machineId).padStart(2, '0')}`;
@@ -244,9 +251,10 @@ export class AIAssistantUI extends Phaser.GameObjects.Container {
     const time = this.shortTime(message.timestamp);
     this.actionText.setText(
       message.recommendedAction
-        ? `RECOMMENDED · ${message.recommendedAction}\n${time}`
+        ? `★ BEST ACTION · ${message.recommendedCommand?.label ?? message.recommendedAction}\n${time}`
         : time,
     );
+    this.actionBanner.setVisible(Boolean(message.recommendedAction));
   }
 
   private dismissCurrent(completeQueue: boolean): void {

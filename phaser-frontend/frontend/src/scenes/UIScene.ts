@@ -137,6 +137,13 @@ export class UIScene extends Phaser.Scene {
         this.syncOverlayState();
       },
       (machineId) => this.selectMachine(machineId),
+      (source, gatewayMessage) => {
+        const decision = mqttTelemetry.recordDecision(source, gatewayMessage);
+        if (this.latestState) {
+          this.applyFactoryState(mqttTelemetry.mergeState(this.latestState));
+          this.phone.focusAIMessage(decision.id);
+        }
+      },
     );
     this.aiAssistant = new AIAssistantUI(this, (message?: AIMessage) => {
       if (message?.machineId !== undefined) {

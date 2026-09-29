@@ -50,6 +50,29 @@ ALERT_COPY = {
     ),
 }
 
+RECOMMENDED_ACTIONS = {
+    "temperature": (
+        "Increase cooling to 90% to slow the predicted temperature rise.",
+        {"command": "SET_COOLING", "value": 90, "label": "COOLING 90"},
+    ),
+    "vibration": (
+        "Reduce load toward 55% and inspect the vibration trend.",
+        {"command": "REDUCE_LOAD", "targetValue": 55, "label": "REDUCE LOAD"},
+    ),
+    "current_excess": (
+        "Reduce load toward 55% to lower the predicted current demand.",
+        {"command": "REDUCE_LOAD", "targetValue": 55, "label": "REDUCE LOAD"},
+    ),
+    "rapid_health_loss": (
+        "Reduce load toward 55% and inspect the machine condition.",
+        {"command": "REDUCE_LOAD", "targetValue": 55, "label": "REDUCE LOAD"},
+    ),
+    "failure": (
+        "Stop the machine safely and arrange an inspection.",
+        {"command": "STOP", "label": "STOP + INSPECT"},
+    ),
+}
+
 # Rounded-up 80th-percentile timing errors on held-out simulator machines.
 # These are display ranges, not confidence intervals or field guarantees.
 ETA_DISPLAY_ERROR_HOURS = {
@@ -236,6 +259,7 @@ class LiveInference:
             title = f"{event_label} risk around {center_hours}h"
             body += (f" Rough timing range: {timing_range[0]}–{timing_range[1]} "
                      "simulated hours; this is a broad estimate, not a deadline.")
+        recommended_action, recommended_command = RECOMMENDED_ACTIONS[name]
         payload = {
             "id": f"ai-{machine_id}-{name}-{minute}-{uuid.uuid4().hex[:8]}",
             "machineId": machine_id,
@@ -244,7 +268,8 @@ class LiveInference:
             "eventType": name,
             "title": title,
             "message": f"{body} Model score: {score:.3f}; alert cutoff: {cutoff:.3f}.",
-            "recommendedAction": "Review the machine telemetry and operating load.",
+            "recommendedAction": recommended_action,
+            "recommendedCommand": recommended_command,
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "simulatedMinute": minute,
             "horizonMinutes": (

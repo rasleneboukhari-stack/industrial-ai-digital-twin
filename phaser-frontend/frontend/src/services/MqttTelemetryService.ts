@@ -272,6 +272,34 @@ export class MqttTelemetryService {
         return () => this.systemAlertListeners.delete(listener);
     }
 
+    recordDecision(source: AIMessage, gatewayMessage: string): AIMessage {
+        const telemetry = source.machineId === undefined
+            ? undefined
+            : this.latestTelemetry.get(source.machineId);
+        const minute = telemetry?.simulatedMinute ?? source.simulatedMinute;
+        const timestamp = minute === undefined
+            ? new Date().toISOString()
+            : new Date(SIMULATOR_CLOCK_ORIGIN + minute * 60_000).toISOString();
+        const label = source.recommendedCommand?.label ?? source.recommendedAction ?? 'recommended action';
+        const decision: AIMessage = {
+            id: `decision-${source.id}-${Date.now()}`,
+            machineId: source.machineId,
+            severity: 'INFO',
+            kind: 'DECISION',
+            eventType: source.eventType,
+            title: `AI recommendation accepted: ${label}`,
+            message: `Operator approved the recommended action. Gateway response: ${gatewayMessage}`,
+            recommendedAction: `Executed: ${label}`,
+            recommendedCommand: source.recommendedCommand,
+            sourcePredictionId: source.id,
+            timestamp,
+            simulatedMinute: minute,
+            prominent: false,
+        };
+        this.latestAIMessages.set(decision.id, decision);
+        return decision;
+    }
+
     mergeState(
         state: FactoryState
     ): FactoryState {
@@ -439,7 +467,16 @@ export class MqttTelemetryService {
             (message.simulatedMinute === undefined ||
                 (Number.isInteger(message.simulatedMinute) && message.simulatedMinute >= 0)) &&
             (message.horizonMinutes === undefined ||
-                (Number.isInteger(message.horizonMinutes) && message.horizonMinutes > 0))
+                (Number.isInteger(message.horizonMinutes) && message.horizonMinutes > 0)) &&
+            (message.recommendedCommand === undefined || (
+                ['SET_COOLING', 'REDUCE_LOAD', 'STOP'].includes(message.recommendedCommand.command) &&
+                typeof message.recommendedCommand.label === 'string' &&
+                message.recommendedCommand.label.length > 0 &&
+                (message.recommendedCommand.value === undefined ||
+                    Number.isFinite(message.recommendedCommand.value)) &&
+                (message.recommendedCommand.targetValue === undefined ||
+                    Number.isFinite(message.recommendedCommand.targetValue))
+            ))
         );
     }
 

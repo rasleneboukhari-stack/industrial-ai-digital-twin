@@ -39,6 +39,7 @@ export class PhoneUI extends Phaser.GameObjects.Container {
     private readonly backend: FactoryBackend,
     private readonly onClose: () => void,
     private readonly onSelectMachine: (machineId: number) => void,
+    private readonly onAIDecision: (source: AIMessage, gatewayMessage: string) => void,
   ) {
     super(scene, 0, 0);
     scene.add.existing(this);
@@ -397,7 +398,9 @@ export class PhoneUI extends Phaser.GameObjects.Container {
         `AI ${this.aiHorizonFilter} ${page + 1}/${messages.length} · FACTORY`,
         `${aiMessage.kind} · ${aiMessage.severity}`,
         `${aiMessage.machineId === undefined ? 'FACTORY' : `MACHINE M${String(machine.id).padStart(2, '0')}`}${confidence}`,
-        activeSystemEvent || machine.status === 'FAULT' || machine.status === 'STOPPED' || expired
+        aiMessage.kind === 'DECISION'
+          ? 'DECISION · gateway accepted'
+          : activeSystemEvent || machine.status === 'FAULT' || machine.status === 'STOPPED' || expired
           ? `HISTORY · ${activeSystemEvent?.title ?? (expired ? 'forecast window passed' : `machine now ${machine.status}`)}`
           : 'FORECAST · outcome not yet observed',
         '',
@@ -405,7 +408,9 @@ export class PhoneUI extends Phaser.GameObjects.Container {
         '',
         this.wrap(aiMessage.message, 46),
         '',
-        aiMessage.recommendedAction ? `Recommended: ${this.wrap(aiMessage.recommendedAction, 34)}` : '',
+        aiMessage.recommendedAction
+          ? `${aiMessage.kind === 'DECISION' ? '✓ ACTION LOG' : '★ BEST ACTION'}: ${this.wrap(aiMessage.recommendedAction, 30)}`
+          : '',
         `Logged: ${this.shortTime(aiMessage.timestamp)} UTC`,
         '',
         'MACHINE AI CONTEXT',
@@ -429,16 +434,39 @@ export class PhoneUI extends Phaser.GameObjects.Container {
       ].join('\n'));
     }
 
-    this.contextActions = (['ALL', '24H', '48H'] as const).map((filter) => ({
-      label: filter === 'ALL' ? 'ALL AI' : filter,
-      active: this.aiHorizonFilter === filter,
-      run: () => {
-        this.aiHorizonFilter = filter;
-        this.focusedAIMessageId = undefined;
-        this.pageByTab.set('AI', 0);
-        this.render();
-      },
-    }));
+    if (aiMessage?.kind !== 'DECISION' && aiMessage?.recommendedCommand) {
+      this.contextActions = [
+        {
+          label: `★ BEST\n${aiMessage.recommendedCommand.label}`,
+          active: true,
+          run: () => this.executeAIRecommendation(aiMessage, machine),
+        },
+        {
+          label: `OPEN M${String(machine.id).padStart(2, '0')}`,
+          run: () => { this.tab = 'SELECTED'; this.render(); },
+        },
+        {
+          label: 'AI HISTORY',
+          run: () => {
+            this.aiHorizonFilter = 'ALL';
+            this.focusedAIMessageId = undefined;
+            this.pageByTab.set('AI', 0);
+            this.render();
+          },
+        },
+      ];
+    } else {
+      this.contextActions = (['ALL', '24H', '48H'] as const).map((filter) => ({
+        label: filter === 'ALL' ? 'ALL AI' : filter,
+        active: this.aiHorizonFilter === filter,
+        run: () => {
+          this.aiHorizonFilter = filter;
+          this.focusedAIMessageId = undefined;
+          this.pageByTab.set('AI', 0);
+          this.render();
+        },
+      }));
+    }
     this.footer.setText('Factory AI log · 24H sensor events · 48H failure · ↑/↓ history.');
   }
 
@@ -570,7 +598,21 @@ export class PhoneUI extends Phaser.GameObjects.Container {
     action.run();
   }
 
-  private sendMachineCommand(machine: MachineState, command: MachineCommand, value?: number): void {
+  private executeAIRecommendation(message: AIMessage, machine: MachineState): void {
+    const recommendation = message.recommendedCommand;
+    if (!recommendation) return;
+    const value = recommendation.command === 'REDUCE_LOAD'
+      ? Math.max(0, Math.round(machine.load - (recommendation.targetValue ?? 55)))
+      : recommendation.value;
+    this.sendMachineCommand(machine, recommendation.command, value, message);
+  }
+
+  private sendMachineCommand(
+    machine: MachineState,
+    command: MachineCommand,
+    value?: number,
+    sourceAIMessage?: AIMessage,
+  ): void {
     if (this.pendingCommand) return;
     if (command === 'REDUCE_LOAD' && value === 0) {
       this.commandFeedback = 'LOAD ALREADY AT OR BELOW 55%.';
@@ -587,6 +629,9 @@ export class PhoneUI extends Phaser.GameObjects.Container {
         this.commandFeedbackColor = result.accepted ? '#7fe3b2' : '#ef8a7f';
         this.commandFeedback = result.accepted ? `COMMAND ACKNOWLEDGED · ${result.message}` : `COMMAND REJECTED · ${result.message}`;
         this.commandStatus.setColor(this.commandFeedbackColor).setText(this.commandFeedback);
+        if (result.accepted && sourceAIMessage) {
+          this.onAIDecision(sourceAIMessage, result.message);
+        }
       })
       .catch((error: unknown) => {
         this.commandFeedbackColor = '#ef8a7f';

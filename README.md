@@ -52,7 +52,7 @@ OpenPLC represents the industrial controller. The simulator exchanges machine st
 
 | Live embedded/control path | Time-series data path |
 | --- | --- |
-| ![Simulator, Rust gateway and OpenPLC running together](docs/screenshots/gateway.png) | ![Simulator source and TimescaleDB telemetry tables](docs/screenshots/data.png) |
+| ![Simulator, Rust gateway and OpenPLC running together](docs/screenshots/gateway.png) | ![Simulator source and TimescaleDB telemetry tables](docs/screenshots/timescaledb-training-data.png) |
 
 ## Predictive-Maintenance AI
 

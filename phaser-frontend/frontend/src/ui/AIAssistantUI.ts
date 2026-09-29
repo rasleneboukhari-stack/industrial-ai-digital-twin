@@ -119,7 +119,7 @@ export class AIAssistantUI extends Phaser.GameObjects.Container {
       wordWrap: { width: 406, useAdvancedWrap: true },
       maxLines: 5,
     });
-    this.actionBanner = scene.add.rectangle(8, 148, 320, 38, 0x263b46, 1)
+    this.actionBanner = scene.add.rectangle(8, 148, 282, 38, 0x263b46, 1)
       .setOrigin(0)
       .setStrokeStyle(2, ACCENTS.INFO);
     this.actionText = scene.add.text(16, 153, '', {
@@ -127,7 +127,7 @@ export class AIAssistantUI extends Phaser.GameObjects.Container {
       fontSize: '10px',
       color: '#e7f3f5',
       fontStyle: 'bold',
-      wordWrap: { width: 304, useAdvancedWrap: true },
+      wordWrap: { width: 266, useAdvancedWrap: true },
       maxLines: 2,
     });
     this.openButton = new PixelButton(scene, 342, 166, 84, 24, 'OPEN AI', () => this.onOpenAI(this.current ?? this.latest));

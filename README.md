@@ -64,7 +64,7 @@ The Python AI uses PyTorch LSTMs. Each sample presented to the temporal model ha
 - load
 - current
 
-Current health is **not** an input feature. Health and confirmed future events are used only to construct training targets. Sequence construction prevents leakage across machines, repair lifecycles, or operating-load blocks.
+Health and confirmed future events are used only to construct training targets. Sequence construction prevents leakage across machines, repair lifecycles, or operating-load blocks.
 
 The project reuses its C-MAPSS and PRONOSTIA experiments where compatible, then fine-tunes on simulator telemetry. The deployed event model estimates cumulative risk in six-hour bands for:
 
@@ -80,9 +80,11 @@ The interface reports a machine-specific approximate time and a broader timing r
 
 `AI` and `SYSTEM` messages have different meanings. An AI message describes an outcome that has not happened yet. A SYSTEM message reports a condition already observed by deterministic monitoring. Once an event is observed, its earlier AI warning moves into history instead of continuing as a live forecast.
 
-| Predictive warning popup | Factory-wide AI history |
-| --- | --- |
-| ![AI vibration forecast with estimated timing](docs/screenshots/ai-vibration-forecast-popup.png) | ![AI forecast history in the operator phone](docs/screenshots/ai-vibration-forecast-phone.png) |
+| Temperature-limit forecast | Load-related current forecast | Machine-failure forecast |
+| --- | --- | --- |
+| ![AI temperature-limit forecast with estimated timing](docs/screenshots/ai-temperature-forecast.png) | ![AI load-related current forecast with estimated timing](docs/screenshots/ai-current-load-forecast.png) | ![AI machine-failure forecast with estimated timing](docs/screenshots/ai-failure-forecast.png) |
+
+![Accepted operator command in the factory console](docs/screenshots/operator-command-acknowledged.png)
 
 ![Observed operating-limit event in the SYSTEM view](docs/screenshots/system-operating-limit-phone.png)
 

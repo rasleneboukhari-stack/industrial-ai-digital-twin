@@ -1,0 +1,22 @@
+{
+  "name": "industrial-digital-twin-phaser-frontend",
+  "private": true,
+  "version": "1.2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "mqtt": "^5.16.0",
+    "phaser": "^3.90.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "vite": "^6.4.3"
+  },
+  "engines": {
+    "node": "^18.0.0 || ^20.0.0 || >=22.0.0"
+  }
+}

@@ -1,0 +1,49 @@
+# Local tools and editor state
+.codex/
+.idea/
+.vscode/
+*.swp
+
+# Secrets and machine-specific configuration
+.env
+.env.*
+!.env.example
+
+# Python environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+# Local datasets and processed training tensors
+ai/data/**
+!ai/data/README.md
+
+# Keep only the checkpoints used by live inference
+ai/models/*.pt
+!ai/models/simulator_event_eta.pt
+!ai/models/simulator_health_scratch.pt
+
+# Rust, CMake, OpenPLC, and frontend build output
+target/
+build/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+node_modules/
+dist/
+.vite/
+
+# Logs, coverage, temporary files, and local archives
+*.log
+coverage/
+htmlcov/
+*.tmp
+*.zip
+.DS_Store
+
+# Accidental package manifest created above the actual Phaser application
+phaser-frontend/package.json
+phaser-frontend/package-lock.json

@@ -1,0 +1,6 @@
+numpy
+pandas
+torch
+psycopg2-binary
+scikit-learn
+paho-mqtt>=2.0,<3

@@ -1,0 +1,27 @@
+{
+  "name": "modbus",
+  "protocol": "modbus-tcp",
+  "modbusSlaveConfig": {
+    "enabled": true,
+    "networkInterface": "0.0.0.0",
+    "port": 1502,
+    "bufferMapping": {
+      "holdingRegisters": {
+        "qwCount": 0,
+        "mwCount": 0,
+        "mdCount": 24,
+        "mlCount": 0
+      },
+      "coils": {
+        "qxBits": 0,
+        "mxBits": 11
+      },
+      "discreteInputs": {
+        "ixBits": 0
+      },
+      "inputRegisters": {
+        "iwCount": 0
+      }
+    }
+  }
+}

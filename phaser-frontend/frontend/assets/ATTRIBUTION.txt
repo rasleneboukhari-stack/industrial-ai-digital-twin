@@ -1,0 +1,5 @@
+All visual PNG assets in this directory are original placeholder pixel-art created specifically for this frontend.
+They do not contain or derive from Pokémon or other third-party game assets.
+
+All WAV assets under assets/audio/ are original procedurally generated placeholder sounds created specifically for this frontend.
+See assets/audio/README.txt for details.
